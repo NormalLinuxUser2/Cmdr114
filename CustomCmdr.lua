@@ -1,9 +1,26 @@
--- === R6 True Surface Chams ===
+-- === Executor-safe GitHub loadstring with R6 chams ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- Wait for character to load
+-- Force fresh fetch from GitHub to bypass cache
+local url = "https://raw.githubusercontent.com/NormalLinuxUser2/Cmdr114/main/CustomCmdr.lua?t="..tostring(tick())
+
+local success, err = pcall(function()
+    local scriptText = game:HttpGetAsync(url)
+    print("Loaded CustomCmdr.lua length:", #scriptText) -- sanity check
+    local f = loadstring or load
+    if f then
+        f(scriptText)()
+    else
+        warn("Executor does not support loadstring/load.")
+    end
+end)
+if not success then
+    warn("Failed to load CustomCmdr.lua:", err)
+end
+
+-- === R6 True Surface Chams ===
 local character = player.Character or player.CharacterAdded:Wait()
 character:WaitForChild("HumanoidRootPart")
 
@@ -14,12 +31,11 @@ local chamParts = {}
 -- Only R6 BaseParts
 local r6Parts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
 
--- Apply chams to a part
+-- Apply cham to BasePart or MeshPart
 local function applyCham(part)
-    if part:IsA("BasePart") or part:IsA("MeshPart") then
+    if (part:IsA("BasePart") or part:IsA("MeshPart")) and part.Parent then
         part.Material = Enum.Material.Neon
         part.Color = baseColor
-        -- Remove decals/textures
         for _, child in ipairs(part:GetChildren()) do
             if child:IsA("Decal") or child:IsA("Texture") then
                 child:Destroy()
@@ -29,7 +45,7 @@ local function applyCham(part)
     end
 end
 
--- Apply chams to R6 BaseParts
+-- Apply to R6 body parts
 for _, partName in ipairs(r6Parts) do
     local part = character:FindFirstChild(partName)
     if part then
@@ -44,7 +60,7 @@ character.DescendantAdded:Connect(function(part)
     end
 end)
 
--- Animate cached parts (pulse effect)
+-- Animate cached parts
 local t = 0
 RunService.Heartbeat:Connect(function(dt)
     t = t + dt * glowSpeed
