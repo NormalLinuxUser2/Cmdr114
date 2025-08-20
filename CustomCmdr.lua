@@ -1,9 +1,9 @@
--- === True Surface Chams for ALL character parts ===
+-- === R6 True Surface Chams ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- Wait until character is fully loaded
+-- Wait for character to load
 local character = player.Character or player.CharacterAdded:Wait()
 character:WaitForChild("HumanoidRootPart")
 
@@ -11,12 +11,15 @@ local baseColor = Color3.fromRGB(170, 0, 255)
 local glowSpeed = 2
 local chamParts = {}
 
--- Function to apply cham to BasePart or MeshPart
-local function applyChamToPart(part)
-    if (part:IsA("BasePart") or part:IsA("MeshPart")) and part.Parent then
+-- Only R6 BaseParts
+local r6Parts = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+
+-- Apply chams to a part
+local function applyCham(part)
+    if part:IsA("BasePart") or part:IsA("MeshPart") then
         part.Material = Enum.Material.Neon
         part.Color = baseColor
-        -- Remove decals/textures to ensure pure cham
+        -- Remove decals/textures
         for _, child in ipairs(part:GetChildren()) do
             if child:IsA("Decal") or child:IsA("Texture") then
                 child:Destroy()
@@ -26,14 +29,19 @@ local function applyChamToPart(part)
     end
 end
 
--- Apply chams to all current descendants
-for _, part in ipairs(character:GetDescendants()) do
-    applyChamToPart(part)
+-- Apply chams to R6 BaseParts
+for _, partName in ipairs(r6Parts) do
+    local part = character:FindFirstChild(partName)
+    if part then
+        applyCham(part)
+    end
 end
 
--- Apply chams to new parts added dynamically
+-- Handle dynamic MeshPart accessories
 character.DescendantAdded:Connect(function(part)
-    applyChamToPart(part)
+    if part:IsA("MeshPart") then
+        applyCham(part)
+    end
 end)
 
 -- Animate cached parts (pulse effect)
