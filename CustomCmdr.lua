@@ -1,19 +1,4 @@
--- === Executor-safe load of CustomCmdr.lua ===
-local url = "https://raw.githubusercontent.com/NormalLinuxUser2/Cmdr114/main/CustomCmdr.lua"
-local success, err = pcall(function()
-    local scriptText = game:HttpGetAsync(url)
-    local f = loadstring or load
-    if f then
-        f(scriptText)()
-    else
-        warn("Executor does not support loadstring/load.")
-    end
-end)
-if not success then
-    warn("Failed to load CustomCmdr.lua:", err)
-end
-
--- === True Surface Chams (Crash-Proof) ===
+-- === True Surface Chams for ALL character parts ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
@@ -26,9 +11,9 @@ local baseColor = Color3.fromRGB(170, 0, 255)
 local glowSpeed = 2
 local chamParts = {}
 
--- Function to apply chams to a part
-local function applySurfaceCham(part)
-    if part:IsA("BasePart") and part.Parent then
+-- Function to apply cham to BasePart or MeshPart
+local function applyChamToPart(part)
+    if (part:IsA("BasePart") or part:IsA("MeshPart")) and part.Parent then
         part.Material = Enum.Material.Neon
         part.Color = baseColor
         -- Remove decals/textures to ensure pure cham
@@ -41,14 +26,14 @@ local function applySurfaceCham(part)
     end
 end
 
--- Apply to all existing parts
+-- Apply chams to all current descendants
 for _, part in ipairs(character:GetDescendants()) do
-    applySurfaceCham(part)
+    applyChamToPart(part)
 end
 
--- Apply to new parts dynamically
+-- Apply chams to new parts added dynamically
 character.DescendantAdded:Connect(function(part)
-    applySurfaceCham(part)
+    applyChamToPart(part)
 end)
 
 -- Animate cached parts (pulse effect)
