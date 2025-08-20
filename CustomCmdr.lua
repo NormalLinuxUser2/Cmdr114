@@ -1,16 +1,33 @@
--- True Surface Chams with Cached Parts (Stable)
+-- === Load Custom Cmdr safely ===
+local success, err = pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/NormalLinuxUser2/Cmdr114/main/CustomCmdr.lua"))()
+end)
+if not success then
+    warn("Failed to load CustomCmdr.lua:", err)
+end
+
+-- === True Surface Chams (Stable) ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
+
+-- Wait until character exists
+local function getCharacter()
+    if player.Character and player.Character.Parent then
+        return player.Character
+    else
+        return player.CharacterAdded:Wait()
+    end
+end
+
+local character = getCharacter()
 
 local baseColor = Color3.fromRGB(170, 0, 255)
 local glowSpeed = 3
-
--- Cached parts for animation
 local chamParts = {}
 
+-- Apply chams to a part
 local function applySurfaceCham(part)
     if part:IsA("BasePart") then
         part.Material = Enum.Material.Neon
@@ -29,7 +46,7 @@ for _, part in ipairs(character:GetDescendants()) do
     applySurfaceCham(part)
 end
 
--- Apply to new parts
+-- Apply to new parts dynamically
 character.DescendantAdded:Connect(function(part)
     applySurfaceCham(part)
 end)
