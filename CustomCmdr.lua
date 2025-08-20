@@ -1,6 +1,6 @@
 --[[
-    Purple Chams with Animation for Local Player
-    Load with: loadstring(game:HttpGet("YOUR_GITHUB_RAW_LINK"))()
+    Purple Material Chams with Glow Animation
+    LocalPlayer Only
 --]]
 
 local Players = game:GetService("Players")
@@ -10,45 +10,39 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
 -- Settings
-local chamColor = Color3.fromRGB(170, 0, 255) -- Purple
-local chamTransparency = 0.5
-local animationSpeed = 2 -- Speed of glow animation
+local baseColor = Color3.fromRGB(170, 0, 255)
+local glowSpeed = 2       -- animation speed
+local glowIntensity = 0.7 -- max brightness
 
--- Function to create chams for a part
-local function createCham(part)
-    local cham = Instance.new("BoxHandleAdornment")
-    cham.Adornee = part
-    cham.AlwaysOnTop = true
-    cham.ZIndex = 2
-    cham.Size = part.Size
-    cham.Transparency = chamTransparency
-    cham.Color3 = chamColor
-    cham.Parent = part
-    return cham
+-- Function to apply cham material
+local function applyCham(part)
+    if part:IsA("BasePart") then
+        part.Material = Enum.Material.Neon
+        part.Color = baseColor
+    end
 end
 
--- Animate cham color
-local function animateCham(cham)
-    local t = 0
-    RunService.RenderStepped:Connect(function(dt)
-        t = t + dt * animationSpeed
-        local offset = math.sin(t) * 0.3 + 0.7
-        cham.Color3 = chamColor:Lerp(Color3.new(1, 1, 1), offset)
-    end)
-end
+-- Animate the glow
+local t = 0
+RunService.RenderStepped:Connect(function(dt)
+    t = t + dt * glowSpeed
+    local pulse = (math.sin(t) * 0.5 + 0.5) * glowIntensity
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and part.Material == Enum.Material.Neon then
+            local r = baseColor.R + pulse * (1 - baseColor.R)
+            local g = baseColor.G + pulse * (1 - baseColor.G)
+            local b = baseColor.B + pulse * (1 - baseColor.B)
+            part.Color = Color3.new(r, g, b)
+        end
+    end
+end)
 
--- Apply chams to all character parts
+-- Apply to all current parts
 for _, part in ipairs(character:GetDescendants()) do
-    if part:IsA("BasePart") then
-        local cham = createCham(part)
-        animateCham(cham)
-    end
+    applyCham(part)
 end
 
--- Optional: Reapply chams if new parts are added (e.g., accessories)
+-- Apply to new parts dynamically
 character.DescendantAdded:Connect(function(part)
-    if part:IsA("BasePart") then
-        local cham = createCham(part)
-        animateCham(cham)
-    end
+    applyCham(part)
 end)
